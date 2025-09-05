@@ -2,8 +2,9 @@
 
 namespace App\Enums;
 
-enum MessageState: string
+enum CampaignRecipientStatus: string
 {
     case Pending = 'pending';
     case Sent = 'sent';
+    case Failed = 'failed';
 }

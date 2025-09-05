@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 
 class InstallApplicationCommand extends Command
 {
@@ -30,7 +29,7 @@ class InstallApplicationCommand extends Command
         $this->call('migrate:fresh', ['--force' => true]);
 
         if ($this->option('seed-dummy-data')) {
-            $this->call('db:seed', ['--class' => 'MessageSeeder']);
+            $this->call('db:seed', ['--class' => 'CampaignManagementSeeder']);
         }
 
         $this->info('Application installed successfully!');

@@ -2,26 +2,34 @@
 
 namespace App\Providers;
 
-use App\Repositories\Contracts\MessageRepositoryInterface;
-use App\Repositories\MessageRepository;
-use App\Services\Contracts\MessageServiceInterface;
-use App\Services\MessageService;
+use App\Repositories\CampaignRecipientRepository;
+use App\Repositories\CampaignRepository;
+use App\Repositories\Contracts\CampaignRecipientRepositoryInterface;
+use App\Repositories\Contracts\CampaignRepositoryInterface;
+use App\Repositories\Contracts\RecipientRepositoryInterface;
+use App\Repositories\RecipientRepository;
+use App\Services\CampaignRecipientService;
+use App\Services\CampaignService;
+use App\Services\Contracts\CampaignRecipientServiceInterface;
+use App\Services\Contracts\CampaignServiceInterface;
+use App\Services\Contracts\RecipientServiceInterface;
+use App\Services\RecipientService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        $this->app->bind(MessageRepositoryInterface::class, MessageRepository::class);
-        $this->app->bind(MessageServiceInterface::class, MessageService::class);
+        $this->app->bind(RecipientRepositoryInterface::class, RecipientRepository::class);
+        $this->app->bind(RecipientServiceInterface::class, RecipientService::class);
+
+        $this->app->bind(CampaignRepositoryInterface::class, CampaignRepository::class);
+        $this->app->bind(CampaignServiceInterface::class, CampaignService::class);
+
+        $this->app->bind(CampaignRecipientRepositoryInterface::class, CampaignRecipientRepository::class);
+        $this->app->bind(CampaignRecipientServiceInterface::class, CampaignRecipientService::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         //
