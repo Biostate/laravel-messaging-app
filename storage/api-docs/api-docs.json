@@ -1,0 +1,357 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Laravel Messaging App API",
+        "description": "API for managing SMS messaging campaigns with rate limiting and comprehensive logging",
+        "contact": {
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://laravel-messaging-app.test",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/api/messages": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Get list of messages",
+                "description": "Retrieve a paginated list of messages with optional filtering by status",
+                "operationId": "4216f3eedb7be911361f1b91030253a8",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter messages by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "sent",
+                            "enum": [
+                                "pending",
+                                "sent",
+                                "failed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of messages per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Message"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 25
+                                                },
+                                                "page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "sent"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/messages/{id}": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Get specific message",
+                "description": "Retrieve details of a specific message by ID",
+                "operationId": "2d72cf14bf2d55c9c9dfd297da04d404",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Message ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/messages/stats/overview": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Get message statistics",
+                "description": "Retrieve overview statistics of all messages including counts and success rate",
+                "operationId": "50e5679ce4948f2aff792dab9b3cad11",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/MessageStats"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Message": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "campaign_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "recipient_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+1234567890"
+                    },
+                    "message_content": {
+                        "type": "string",
+                        "example": "Welcome to our service!"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "sent",
+                            "failed"
+                        ],
+                        "example": "sent"
+                    },
+                    "sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "failure_reason": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "message_id": {
+                        "type": "string",
+                        "example": "msg_123456",
+                        "nullable": true
+                    },
+                    "cached_message_id": {
+                        "type": "string",
+                        "example": "msg_123456",
+                        "nullable": true
+                    },
+                    "cached_sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "MessageStats": {
+                "properties": {
+                    "total_messages": {
+                        "type": "integer",
+                        "example": 1000
+                    },
+                    "sent_messages": {
+                        "type": "integer",
+                        "example": 950
+                    },
+                    "pending_messages": {
+                        "type": "integer",
+                        "example": 30
+                    },
+                    "failed_messages": {
+                        "type": "integer",
+                        "example": 20
+                    },
+                    "success_rate": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 95
+                    }
+                },
+                "type": "object"
+            },
+            "ApiResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Error message"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Messages",
+            "description": "Message management endpoints"
+        }
+    ]
+}
