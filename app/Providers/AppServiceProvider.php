@@ -14,6 +14,8 @@ use App\Services\Contracts\CampaignRecipientServiceInterface;
 use App\Services\Contracts\CampaignServiceInterface;
 use App\Services\Contracts\RecipientServiceInterface;
 use App\Services\RecipientService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        RateLimiter::for('send-message', function () {
+            // 2 jobs per 5 seconds
+            return Limit::perSecond(2, 5);
+        });
     }
 }

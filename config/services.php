@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'webhook-site' => [
+        'unique_id' => env('WEBHOOK_SITE_UNIQUE_ID'),
+        'base_url' => env('WEBHOOK_SITE_BASE_URL', 'https://webhook.site'),
+        'auth_key' => env('WEBHOOK_SITE_AUTH_KEY'),
+    ],
+
 ];
