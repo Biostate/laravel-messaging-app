@@ -1,11 +1,12 @@
 <?php
 
 use App\Enums\CampaignRecipientStatus;
-use App\Jobs\SendMessageJob;
+use App\Enums\CampaignStatus;
+use App\Jobs\ProcessCampaignJob;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
 use App\Models\Recipient;
-use App\Services\Contracts\CampaignRecipientServiceInterface;
+use App\Services\Contracts\CampaignServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
@@ -17,8 +18,11 @@ beforeEach(function () {
 });
 
 describe('SendPendingMessagesCommand', function () {
-    it('dispatches jobs for pending messages', function () {
-        $campaign = Campaign::factory()->create();
+    it('dispatches ProcessCampaignJob for campaigns with pending messages', function () {
+        $campaign = Campaign::factory()->create([
+            'status' => CampaignStatus::Sending,
+        ]);
+        
         $recipient = Recipient::factory()->create();
 
         CampaignRecipient::factory()->count(3)->create([
@@ -27,62 +31,74 @@ describe('SendPendingMessagesCommand', function () {
             'status' => CampaignRecipientStatus::Pending,
         ]);
 
-        Artisan::call('messages:send-pending', ['--limit' => 5]);
+        Artisan::call('messages:send-pending');
 
-        Queue::assertPushed(SendMessageJob::class, 3);
+        Queue::assertPushed(ProcessCampaignJob::class, 1);
     });
 
-    it('respects the limit parameter', function () {
-        $campaign = Campaign::factory()->create();
+    it('dispatches ProcessCampaignJob for specific campaigns', function () {
+        $campaign1 = Campaign::factory()->create([
+            'status' => CampaignStatus::Sending,
+        ]);
+        $campaign2 = Campaign::factory()->create([
+            'status' => CampaignStatus::Sending,
+        ]);
+        
         $recipient = Recipient::factory()->create();
 
-        CampaignRecipient::factory()->count(5)->create([
-            'campaign_id' => $campaign->id,
+        CampaignRecipient::factory()->count(2)->create([
+            'campaign_id' => $campaign1->id,
             'recipient_id' => $recipient->id,
             'status' => CampaignRecipientStatus::Pending,
         ]);
 
-        Artisan::call('messages:send-pending', ['--limit' => 2]);
+        CampaignRecipient::factory()->count(3)->create([
+            'campaign_id' => $campaign2->id,
+            'recipient_id' => $recipient->id,
+            'status' => CampaignRecipientStatus::Pending,
+        ]);
 
-        Queue::assertPushed(SendMessageJob::class, 2);
+        Artisan::call('messages:send-pending', ['--campaign' => [$campaign1->id]]);
+
+        Queue::assertPushed(ProcessCampaignJob::class, 1);
     });
 
-    it('handles no pending messages gracefully', function () {
+    it('handles no campaigns gracefully', function () {
         $output = Artisan::call('messages:send-pending');
 
         expect($output)->toBe(0);
         Queue::assertNothingPushed();
     });
 
-    it('implements rate limiting correctly', function () {
-        $campaign = Campaign::factory()->create();
-        $recipient = Recipient::factory()->create();
-
-        CampaignRecipient::factory()->count(5)->create([
-            'campaign_id' => $campaign->id,
-            'recipient_id' => $recipient->id,
-            'status' => CampaignRecipientStatus::Pending,
-        ]);
-
-        Artisan::call('messages:send-pending', ['--limit' => 5]);
-
-        Queue::assertPushed(SendMessageJob::class, 5);
-    });
-
-    it('uses correct service method', function () {
-        $mockService = Mockery::mock(CampaignRecipientServiceInterface::class);
-        $mockService->shouldReceive('getByStatusWithLimit')
-            ->with(CampaignRecipientStatus::Pending, 10)
+    it('uses correct service method for campaigns', function () {
+        $mockService = Mockery::mock(CampaignServiceInterface::class);
+        $mockService->shouldReceive('getByStatus')
+            ->with(CampaignStatus::Sending)
             ->once()
             ->andReturn(new \Illuminate\Database\Eloquent\Collection);
 
-        $this->app->instance(CampaignRecipientServiceInterface::class, $mockService);
+        $this->app->instance(CampaignServiceInterface::class, $mockService);
 
         Artisan::call('messages:send-pending');
     });
 
+    it('uses correct service method for specific campaigns', function () {
+        $mockService = Mockery::mock(CampaignServiceInterface::class);
+        $mockService->shouldReceive('getByIds')
+            ->with([1, 2])
+            ->once()
+            ->andReturn(new \Illuminate\Database\Eloquent\Collection);
+
+        $this->app->instance(CampaignServiceInterface::class, $mockService);
+
+        Artisan::call('messages:send-pending', ['--campaign' => [1, 2]]);
+    });
+
     it('outputs correct information', function () {
-        $campaign = Campaign::factory()->create();
+        $campaign = Campaign::factory()->create([
+            'status' => CampaignStatus::Sending,
+        ]);
+        
         $recipient = Recipient::factory()->create();
 
         CampaignRecipient::factory()->count(2)->create([
@@ -91,7 +107,7 @@ describe('SendPendingMessagesCommand', function () {
             'status' => CampaignRecipientStatus::Pending,
         ]);
 
-        $output = Artisan::call('messages:send-pending', ['--limit' => 2]);
+        $output = Artisan::call('messages:send-pending');
 
         expect($output)->toBe(0);
     });

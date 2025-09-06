@@ -190,6 +190,19 @@ describe('CampaignService', function () {
         });
     });
 
+    describe('getByIds() method', function () {
+        it('returns campaigns filtered by IDs', function () {
+            $ids = [1, 2, 3];
+            $campaigns = Campaign::factory()->count(3)->create();
+            $this->mockRepository->shouldReceive('getByIds')->with($ids)->once()->andReturn($campaigns);
+
+            $result = $this->service->getByIds($ids);
+
+            expect($result)->toBeInstanceOf(Collection::class);
+            expect($result)->toHaveCount(3);
+        });
+    });
+
     describe('getByStatusWithLimit() method', function () {
         it('returns campaigns filtered by status with limit', function () {
             $status = CampaignStatus::Draft;
