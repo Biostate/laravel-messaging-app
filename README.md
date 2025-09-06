@@ -14,6 +14,10 @@ A robust Laravel application for sending SMS messages to multiple recipients wit
 - **Caching**: Redis-based caching for message IDs and performance optimization
 - **Testing**: Comprehensive test suite with Pest PHP
 
+![Running messages:send-pending command to process campaigns and dispatch batch jobs for message sending](https://github.com/Biostate/laravel-messaging-app/blob/main/art/figure-1.png?raw=true)
+
+![Rate limiting implementation showing 2 messages processed every 5 seconds with job middleware](https://github.com/Biostate/laravel-messaging-app/blob/main/art/figure-2.png?raw=true)
+
 ## Requirements
 
 - PHP 8.3+
@@ -132,7 +136,7 @@ Your application will be available at: [http://localhost:8000](http://localhost:
 
 4. **Send Pending Messages**:
    ```bash
-   php artisan messages:send-pending --limit=10
+   php artisan messages:send-pending
    ```
 
 ### API Endpoints
