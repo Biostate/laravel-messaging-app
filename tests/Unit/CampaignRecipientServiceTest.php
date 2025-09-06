@@ -341,8 +341,8 @@ describe('CampaignRecipientService', function () {
 
             expect($pendingResult)->toHaveCount(4);
             expect($sentResult)->toHaveCount(2);
-            expect($pendingResult->every(fn($cr) => $cr->status === CampaignRecipientStatus::Pending))->toBeTrue();
-            expect($sentResult->every(fn($cr) => $cr->status === CampaignRecipientStatus::Sent))->toBeTrue();
+            expect($pendingResult->every(fn ($cr) => $cr->status === CampaignRecipientStatus::Pending))->toBeTrue();
+            expect($sentResult->every(fn ($cr) => $cr->status === CampaignRecipientStatus::Sent))->toBeTrue();
         });
 
         it('works with getPendingByCampaign', function () {
@@ -352,7 +352,7 @@ describe('CampaignRecipientService', function () {
 
             $result = $this->realService->getPendingByCampaign($campaign->id);
             expect($result)->toHaveCount(3);
-            expect($result->every(fn($cr) => $cr->status === CampaignRecipientStatus::Pending))->toBeTrue();
+            expect($result->every(fn ($cr) => $cr->status === CampaignRecipientStatus::Pending))->toBeTrue();
         });
     });
 });

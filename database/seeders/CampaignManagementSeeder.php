@@ -20,8 +20,8 @@ class CampaignManagementSeeder extends Seeder
         $this->call(CampaignRecipientSeeder::class);
 
         $this->command->info('Campaign Management System seeded successfully!');
-        $this->command->info('   - Recipients: ' . \App\Models\Recipient::count());
-        $this->command->info('   - Campaigns: ' . \App\Models\Campaign::count());
-        $this->command->info('   - Campaign Recipients: ' . \App\Models\CampaignRecipient::count());
+        $this->command->info('   - Recipients: '.\App\Models\Recipient::count());
+        $this->command->info('   - Campaigns: '.\App\Models\Campaign::count());
+        $this->command->info('   - Campaign Recipients: '.\App\Models\CampaignRecipient::count());
     }
 }

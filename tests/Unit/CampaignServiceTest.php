@@ -288,8 +288,8 @@ describe('CampaignService', function () {
 
             expect($draftCampaigns)->toHaveCount(3);
             expect($sendingCampaigns)->toHaveCount(2);
-            expect($draftCampaigns->every(fn($campaign) => $campaign->status === CampaignStatus::Draft))->toBeTrue();
-            expect($sendingCampaigns->every(fn($campaign) => $campaign->status === CampaignStatus::Sending))->toBeTrue();
+            expect($draftCampaigns->every(fn ($campaign) => $campaign->status === CampaignStatus::Draft))->toBeTrue();
+            expect($sendingCampaigns->every(fn ($campaign) => $campaign->status === CampaignStatus::Sending))->toBeTrue();
         });
 
         it('works with getByStatusWithLimit', function () {
@@ -299,7 +299,7 @@ describe('CampaignService', function () {
 
             expect($result)->toBeInstanceOf(Collection::class);
             expect($result)->toHaveCount(3);
-            expect($result->every(fn($campaign) => $campaign->status === CampaignStatus::Draft))->toBeTrue();
+            expect($result->every(fn ($campaign) => $campaign->status === CampaignStatus::Draft))->toBeTrue();
         });
     });
 });

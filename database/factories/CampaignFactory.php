@@ -45,33 +45,33 @@ class CampaignFactory extends Factory
             return $baseMessage;
         }
 
-        return substr($baseMessage, 0, 157) . '...';
+        return substr($baseMessage, 0, 157).'...';
     }
 
     public function draft(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::Draft,
         ]);
     }
 
     public function sending(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::Sending,
         ]);
     }
 
     public function completed(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::Completed,
         ]);
     }
 
     public function failed(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignStatus::Failed,
         ]);
     }

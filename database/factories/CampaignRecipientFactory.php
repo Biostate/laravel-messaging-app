@@ -23,14 +23,14 @@ class CampaignRecipientFactory extends Factory
 
     public function pending(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignRecipientStatus::Pending,
         ]);
     }
 
     public function sent(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignRecipientStatus::Sent,
             'sent_at' => now(),
             'message_id' => fake()->optional()->uuid(),
@@ -39,7 +39,7 @@ class CampaignRecipientFactory extends Factory
 
     public function failed(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => CampaignRecipientStatus::Failed,
             'failure_reason' => fake()->sentence(),
         ]);
