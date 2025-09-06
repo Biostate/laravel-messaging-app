@@ -154,7 +154,7 @@ describe('SendMessageJob', function () {
 
         $job = new SendMessageJob($campaignRecipient);
         $exception = new \Exception('Test failure');
-        
+
         $job->failed($exception);
 
         $campaignRecipient->refresh();
