@@ -2,48 +2,44 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\CampaignRecipientStatus;
-use App\Jobs\SendMessageJob;
-use App\Services\Contracts\CampaignRecipientServiceInterface;
+use App\Enums\CampaignStatus;
+use App\Jobs\ProcessCampaignJob;
+use App\Services\Contracts\CampaignServiceInterface;
 use Illuminate\Console\Command;
 
 class SendPendingMessagesCommand extends Command
 {
-    protected $signature = 'messages:send-pending {--limit=10 : Maximum number of messages to process}';
+    protected $signature = 'messages:send-pending {--campaign=* : Specific campaign IDs}';
 
-    protected $description = 'Fetch pending messages and dispatch them to the queue';
+    protected $description = 'Fetch pending campaigns and dispatch them';
 
-    public function handle(CampaignRecipientServiceInterface $campaignRecipientService): int
+    public function handle(CampaignServiceInterface $campaignService): int
     {
-        $limit = (int) $this->option('limit');
+        $campaignIds = $this->option('campaign');
 
-        $this->info("Fetching pending messages (limit: {$limit})...");
+        if (! empty($campaignIds)) {
+            $this->info('Processing specific campaigns: '.implode(', ', $campaignIds));
+            $campaigns = $campaignService->getByIds($campaignIds);
+        } else {
+            $this->info('Fetching campaigns with pending messages...');
+            $campaigns = $campaignService->getByStatus(CampaignStatus::Sending);
+        }
 
-        $pendingMessages = $campaignRecipientService->getByStatusWithLimit(
-            CampaignRecipientStatus::Pending,
-            $limit
-        );
-
-        if ($pendingMessages->isEmpty()) {
-            $this->info('No pending messages found.');
+        if ($campaigns->isEmpty()) {
+            $this->info('No campaigns found.');
 
             return self::SUCCESS;
         }
 
-        $this->info("Found {$pendingMessages->count()} pending messages.");
+        $this->info("Found {$campaigns->count()} campaigns with pending messages.");
 
-        $dispatchedCount = 0;
-
-        foreach ($pendingMessages as $campaignRecipient) {
-            SendMessageJob::dispatch($campaignRecipient);
-            $dispatchedCount++;
-
-            $this->line("Dispatched job for campaign recipient ID: {$campaignRecipient->id}");
+        foreach ($campaigns as $campaign) {
+            ProcessCampaignJob::dispatch($campaign);
+            $this->line("Dispatched ProcessCampaignJob for campaign: {$campaign->id} - {$campaign->name}");
         }
 
-        $this->info("Successfully dispatched {$dispatchedCount} jobs to the queue.");
-        $this->info('Rate limiting is handled by job middleware (2 messages every 5 seconds).');
-        $this->info("Run 'php artisan queue:work' to process the jobs.");
+        $this->info("Successfully dispatched {$campaigns->count()} ProcessCampaignJob instances.");
+        $this->info("Ensure 'php artisan queue:work' is running to process the jobs.");
 
         return self::SUCCESS;
     }

@@ -4,7 +4,10 @@ namespace App\Jobs;
 
 use App\Models\CampaignRecipient;
 use App\Services\WebhookSiteService;
+use Exception;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -12,10 +15,11 @@ use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class SendMessageJob implements ShouldQueue
+class SendMessageJob implements ShouldBeUnique, ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $timeout = 60;
 
@@ -29,6 +33,11 @@ class SendMessageJob implements ShouldQueue
         public CampaignRecipient $campaignRecipient
     ) {
         $this->jobQueuedAt = now();
+    }
+
+    public function uniqueId(): string
+    {
+        return $this->campaignRecipient->id;
     }
 
     public function middleware(): array
@@ -58,8 +67,17 @@ class SendMessageJob implements ShouldQueue
         Log::channel('send_message_job')->info("SendMessageJob: {$event}", array_merge($baseData, $data));
     }
 
+    /**
+     * @throws Exception
+     */
     public function handle(WebhookSiteService $webhookService): void
     {
+        if ($this->batch() && $this->batch()->cancelled()) {
+            $this->logJobEvent('job_cancelled_by_batch');
+
+            return;
+        }
+
         $this->jobStartedAt = now();
 
         $this->logJobEvent('job_started', [
@@ -73,11 +91,6 @@ class SendMessageJob implements ShouldQueue
             $campaign = $this->campaignRecipient->campaign;
             $recipient = $this->campaignRecipient->recipient;
 
-            $this->logJobEvent('webhook_request_initiated', [
-                'campaign_message_length' => strlen($campaign->message),
-                'campaign_name' => $campaign->name ?? 'N/A',
-            ]);
-
             $webhookStartTime = now();
             $response = $webhookService->sendMessage(
                 $recipient->phone_number,
@@ -87,6 +100,11 @@ class SendMessageJob implements ShouldQueue
 
             if ($response && isset($response['messageId'])) {
                 $sentAt = now();
+
+                // test purposes only
+                if ($response['messageId'] === '67f2f8a8-ea58-4ed0-a6f9-ff217df4d849') {
+                    $response['messageId'] = Str::uuid();
+                }
 
                 $this->campaignRecipient->update([
                     'status' => \App\Enums\CampaignRecipientStatus::Sent,
@@ -111,9 +129,9 @@ class SendMessageJob implements ShouldQueue
                     'total_queue_time_seconds' => $sentAt->diffInSeconds($this->jobQueuedAt),
                 ]);
             } else {
-                throw new \Exception('Invalid response from webhook service');
+                throw new Exception('Invalid response from webhook service');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $failedAt = now();
 
             $this->campaignRecipient->update([

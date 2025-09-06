@@ -31,6 +31,11 @@ class CampaignService implements CampaignServiceInterface
         return $this->update($id, ['status' => $status]);
     }
 
+    public function getByIds(array $ids): Collection
+    {
+        return $this->repository->getByIds($ids);
+    }
+
     public function getByStatus(CampaignStatus $status): Collection
     {
         return $this->repository->getByStatus($status);

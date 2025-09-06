@@ -11,6 +11,8 @@ interface CampaignServiceInterface extends BaseServiceInterface
 
     public function updateStatus(int $id, CampaignStatus $status): bool;
 
+    public function getByIds(array $ids): Collection;
+
     public function getByStatus(CampaignStatus $status): Collection;
 
     public function getByStatusWithLimit(CampaignStatus $status, int $limit): Collection;

@@ -17,6 +17,11 @@ class CampaignRepository implements CampaignRepositoryInterface
         $this->model = Campaign::class;
     }
 
+    public function getByIds(array $ids): Collection
+    {
+        return $this->newModel()->query()->whereIn('id', $ids)->get();
+    }
+
     public function getByStatus(CampaignStatus $status): Collection
     {
         return $this->newModel()->query()->where('status', $status)->get();
